@@ -11,12 +11,9 @@ const {
 const OpenAI = require('openai-api');
 const OpenAITokens = require('openai-nodejs');
 const config = require('./config.json');
-const officeParser = require('officeparser');
 const https = require('https');
-
-const { writeFile } = require('../files/fileSave');
 const path = require('path');
-const fs = require('fs');
+
 
 const OPENAI_API_KEY = config.openai.apiKey;
 const openai = new OpenAI(OPENAI_API_KEY);
@@ -35,52 +32,50 @@ var myArr;
 
 var maxtokens = 150;
 
-// Onine Meeting
-// https://docs.microsoft.com/en-us/graph/api/resources/onlinemeeting?view=graph-rest-1.0
-// Teams Info
-// https://docs.microsoft.com/en-us/javascript/api/botbuilder/teamsinfo?view=botbuilder-ts-latest#getMeetingInfo_TurnContext__string_
-// EXAMPLES
-// https://github.com/microsoft/botbuilder-samples
-
-// Permisos de la API del BOT
-// https://aad.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/CallAnAPI/appId/bacf0ad6-1526-4343-87a1-416f913f946e/isMSAApp/
-// Com cridar la API GRAPH REST
-// https://docs.microsoft.com/es-es/graph/api/team-list-members?view=graph-rest-1.0&tabs=javascript
 
 class MeetingBot extends ActivityHandler {
     constructor() {
         super();
-        // https://github.com/microsoft/BotBuilder-Samples/blob/main/samples/javascript_nodejs/56.teams-file-upload/bots/teamsFileUploadBot.js
+
+        // When the bot recive a message
         this.onMessage(async (context, next) => {
-            TurnContext.removeRecipientMention(context.activity);
+
             const attachments = context.activity.attachments;
             
-            // Detecta que s'ha adjuntat un arxiu
+            // Detect if there is a attached file
             if (attachments == undefined) {
+
+                // If there isn't any attached files the bot inform what do it want
                 await context.sendActivity("Hola!"); 
                 await context.sendActivity("Si m'envies un fitxer amb les transcripcions d'una reunió t'envio el resum."); 
 
             } else {
+
+                // For all the attached files
                 for (let i = 0; i < attachments.length; i++){
                     const file = attachments[i];
-                    // En el cas que l'etiquetis en una conversa de grup
+                    // In case the ot has mention in a group conversation
                     if(file.contentType == "text/html"){
-                        await context.sendActivity("Benvingut!"); 
+                        await context.sendActivity("Benvingut/da!"); 
                         await context.sendActivity("Si m'envies un fitxer per privat amb les transcripcions d'una reunió t'envio el resum.");   
                     } else {
+                        // If has a file in a une vs one conversation
                         transcription = null;
                         finalTranscription = null;
                         text = null;
                         text2 = null;
             
-                        // Amb hem de llegim la URL de descarrega i el tipus d'arxiu
+                        // We have to save the download URL of the file and the type of file
                         const downloadUrl = file.content.downloadUrl;
                         const tipusArxiu = file.content.fileType;
 
-                        // Llegim el text de l'arxiu i el guardem a la variable
+                        await context.sendActivity("Download URL: " + downloadUrl);
+
+                        // We read the text from the file and save it to the variable text
                         text = await getText(downloadUrl);
 
-                        // Segons el tipus d'arxiu que sigui el preparem d'una manera o d'una altre
+                        // Depending on the type of file, we prepare it in one way or another
+                        // THe bot accept files of vtt type or txt type
                         switch (tipusArxiu) {
                             case "txt":
                                 text2 = await prepareTranscriptsTxt(text);
@@ -91,53 +86,47 @@ class MeetingBot extends ActivityHandler {
                             case "docx":
                                 await context.sendActivity("No entenc el contingut d'aquest arxiu.");
                                 await context.sendActivity("Siusplau passa'm un document .txt o .vtt.");
+                                text2 = null;
                                 //text2 = await prepareTranscriptsDocx(text);
                                 break;
                             default:
                                 await context.sendActivity("No entenc el contingut d'aquest arxiu.");
                                 await context.sendActivity("Siusplau passa'm un document .txt o .vtt.");
+                                text2 = null;
                                 break;
                         }
 
-                        // Aquí hauriem de contar els tokens, si supera el maxim avisar a l'usuari, sinó enviar la petició a la API
-                        var tokens = openai_tokens.tokens(text2);
-                        // El maxtokens son els tokens que ocupa la resposta, que estan incloso dins els 2048 tokens maxims
-                        tokens = tokens - maxtokens; 
-
-                        // Si els tokens superen 2048 avisem a l'usuari que el text es massa llarg, sinó li enviem el resum
-                        if(tokens > 2048){
-                            await context.sendActivity("Ocupa aquests tokens: " + tokens);
-                            await context.sendActivity("El text es massa llarg, no podem fer-ne un resum.");
-                        } else {
-                            finalTranscription = await petititonOpenAiApi(text2);
-                            await context.sendActivity("Ocupa aquests tokens: " + tokens);
-                            await context.sendActivity("El resum de la reunió és: " + finalTranscription);
+                        // In case that we have read the file
+                        if( text2 != null){
+                            // We count the amount of tokens the text have
+                            var tokens = openai_tokens.tokens(text2);
+                            // The maxtokens are the tokens that occupy the answer, which are included in the maximum 2048 tokens
+                            tokens = tokens - maxtokens; 
+    
+                            // If the tokens exceed 2048 we warn the user that the text is too long, otherwise we send the summary
+                            if(tokens > 2048){
+                                await context.sendActivity("Ocupa aquests tokens: " + tokens);
+                                await context.sendActivity("El text es massa llarg, no podem fer-ne un resum.");
+                            } else {
+                                finalTranscription = await petititonOpenAiApi(text2);
+                                await context.sendActivity("Ocupa aquests tokens: " + tokens);
+                                await context.sendActivity("El resum de la reunió és: " + finalTranscription);
+                            }
                         }
                     }
                 }
 
             }
-
-            // Pilla tots els membres de la conversa
-            /*
-            const teamDetails = await TeamsInfo.getMembers(context);
-            if (teamDetails) {
-                for (let cnt = 0; cnt < teamDetails.length; ++cnt) {
-                    await context.sendActivity(`Teams Details Meeting Participants: ${ teamDetails[cnt].name }`);
-                }
-            } else {
-                await context.sendActivity('This message did not come from a channel in a team.');
-            }*/
-
             await next();
         });
 
-
+        // When a member is added in the conversaion
         this.onMembersAdded(async (context, next) => {
             const membersAdded = context.activity.membersAdded;
 
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
+                    // The bot explain what it does
                     const holaPersona = `Benvingut/da ${ membersAdded[cnt].id}`;
                     await context.sendActivity(holaPersona);
                     await context.sendActivity("Si m'envies un fitxer amb les transcripcions d'una reunió t'envio el resum.");  
@@ -146,33 +135,15 @@ class MeetingBot extends ActivityHandler {
             await next();
         });
 
-        // Nomes detecta quan afegim gent i marxa del chat
+        // It only detects when we add people and leaves the chat
         this.onConversationUpdate(async (context, next) => {
-            await context.sendActivity("onConversationUpdate"); 
+            //await context.sendActivity("onConversationUpdate"); 
             await next();
         });
 
-        this.onEventActivity(async (context, next) => {
-            await context.sendActivity("onEventActivity"); 
-            await next();
-        });
+        
 
-        this.onEvent(async (context, next) => {
-            await context.sendActivity("onEvent"); 
-            await next();
-        });
-
-        this.onInvokeActivity(async (context, next) => {
-            await context.sendActivity("onInvokeActivity"); 
-            await next();
-        });
-
-        this.onTurnActivity(async (context, next) => {
-            await context.sendActivity("onTurnActivity"); 
-            await next();
-        });
-
-        // Llegeix el text de la URL i el retorna
+        // Read the URL text and return it
         async function getText(downloadUrl){
             var data = [];
             var text = null;
@@ -190,7 +161,7 @@ class MeetingBot extends ActivityHandler {
             })
         }
 
-        // Prepara el text de les transcripcions d'un fitxer txt
+        // Prepares the text of the transcripts of a txt file
         async function prepareTranscriptsTxt(t){
             var textAux = "", myArr2 = "", textAux2 = "";
 
@@ -216,7 +187,7 @@ class MeetingBot extends ActivityHandler {
             return petition + textAux + resum;
         }
 
-        // Prepara el text de les transcripcions d'un fitxer vtt
+        // Prepares the text of the transcripts of a vtt file
         async function prepareTranscriptsVtt(t){
             var textAux = "";
             t = t.replace("WEBVTT", "");
@@ -234,8 +205,8 @@ class MeetingBot extends ActivityHandler {
             return petition + textAux + resum;
         }
 
-        // Prepara el text de les transcripcions d'un fitxer docx
-        // No es poden passar docx perquè no entenem el text
+        // Prepares the text of the transcripts of a docx file
+        // Docx cannot be passed because we do not understand the text
         async function prepareTranscriptsDocx(t){
             var textAux = "";
             myArr = t.split('-->');
@@ -247,11 +218,13 @@ class MeetingBot extends ActivityHandler {
             return petition + textAux + resum;
         }
         
+
+        // Function that makes the request to the OpenAI API and returns the response 
         async function petititonOpenAiApi(transcription){
 
             finalTranscription = transcription;
 
-            /*const gptResponse = await openai.complete({
+            const gptResponse = await openai.complete({
               engine: 'davinci-instruct-beta',
               prompt: transcription,
               maxTokens: maxtokens,
@@ -261,7 +234,7 @@ class MeetingBot extends ActivityHandler {
               frequencyPenalty: 0.0
             });
 
-            finalTranscription = gptResponse.data.choices[0].text;*/
+            finalTranscription = gptResponse.data.choices[0].text;
             return finalTranscription;
             
           };

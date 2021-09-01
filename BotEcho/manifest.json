@@ -28,6 +28,8 @@
     "resource": "https://AnyString",
     "applicationPermissions": [
       "ChannelMessage.Read.Group",
+      "ChannelMessage.Read.All",
+      "Group.Read.All",
       "OnlineMeeting.ReadBasic.Chat"
     ]
   },
@@ -37,6 +39,7 @@
       "needsChannelSelector": false,
       "isNotificationOnly": false,
       "supportsFiles": true,
+      "supportsCalling": true,
       "scopes": [
         "team",
         "personal",
