@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+
+// https://www.npmjs.com/package/@microsoft/microsoft-graph-client#3-make-requests-to-the-graph
+
 const { 
     ActivityHandler,
     TurnContext, 
@@ -41,13 +44,34 @@ class MeetingBot extends ActivityHandler {
         this.onMessage(async (context, next) => {
 
             const attachments = context.activity.attachments;
+            TurnContext.removeRecipientMention(context.activity);
+
+            var text;
+            if(context.activity.text != null){
+                text = context.activity.text.trim().toLocaleLowerCase();
+            } else {
+                text = ""; 
+            }
             
             // Detect if there is a attached file
             if (attachments == undefined) {
 
                 // If there isn't any attached files the bot inform what do it want
-                await context.sendActivity("Hola!"); 
-                await context.sendActivity("Si m'envies un fitxer amb les transcripcions d'una reunió t'envio el resum."); 
+                if (text.includes('hello')) {
+                    await context.sendActivity("Hi!"); 
+                    await context.sendActivity("If you send me a file with the transcripts of a meeting I will send you the summary.");
+                    await context.sendActivity("Remember that I only accept .txt and .vtt files.");
+                } else if (text.includes('thank') || text.includes('thanks')) {
+                    await context.sendActivity("You're welcome.");
+                    await context.sendActivity("If you need any other transcriptions send me the file.");
+                } else if (text.includes('bye')) {
+                    await context.sendActivity("If you need any other transcriptions send me the file.");
+                    await context.sendActivity("Bye!");
+                } else {
+                    await context.sendActivity("Hello!"); 
+                    await context.sendActivity("If you send me a file with the transcripts of a meeting I will send you the summary.");
+                    await context.sendActivity("Remember that I only accept .txt and .vtt files.");
+                }
 
             } else {
 
@@ -56,8 +80,23 @@ class MeetingBot extends ActivityHandler {
                     const file = attachments[i];
                     // In case the ot has mention in a group conversation
                     if(file.contentType == "text/html"){
-                        await context.sendActivity("Benvingut/da!"); 
-                        await context.sendActivity("Si m'envies un fitxer per privat amb les transcripcions d'una reunió t'envio el resum.");   
+
+                        if (text.includes('hello')) {
+                            await context.sendActivity("Hi!"); 
+                            await context.sendActivity("If you send me a file with the transcripts of a meeting I will send you the summary.");
+                            await context.sendActivity("Remember that I only accept .txt and .vtt files.");
+                        } else if (text.includes('thank') || text.includes('thanks')) {
+                            await context.sendActivity("You're welcome.");
+                            await context.sendActivity("If you need any other transcriptions send me the file.");
+                        } else if (text.includes('bye')) {
+                            await context.sendActivity("If you need any other transcriptions send me the file.");
+                            await context.sendActivity("Bye!");
+                        } else {
+                            await context.sendActivity("Welcome!"); 
+                            await context.sendActivity("If you send me a private message with the transcriptions file of a meeting I will send you the summary.");
+                            await context.sendActivity("Remember that I only accept .txt and .vtt files."); 
+                        }
+
                     } else {
                         // If has a file in a une vs one conversation
                         transcription = null;
@@ -84,14 +123,14 @@ class MeetingBot extends ActivityHandler {
                                 text2 = await prepareTranscriptsVtt(text);
                                 break;
                             case "docx":
-                                await context.sendActivity("No entenc el contingut d'aquest arxiu.");
-                                await context.sendActivity("Siusplau passa'm un document .txt o .vtt.");
+                                await context.sendActivity("I do not understand the contents of this file.");
+                                await context.sendActivity("Please send me a document of .txt or .vtt type.");
                                 text2 = null;
                                 //text2 = await prepareTranscriptsDocx(text);
                                 break;
                             default:
-                                await context.sendActivity("No entenc el contingut d'aquest arxiu.");
-                                await context.sendActivity("Siusplau passa'm un document .txt o .vtt.");
+                                await context.sendActivity("I do not understand the contents of this file.");
+                                await context.sendActivity("Please send me a document of .txt or .vtt type.");
                                 text2 = null;
                                 break;
                         }
@@ -105,12 +144,12 @@ class MeetingBot extends ActivityHandler {
     
                             // If the tokens exceed 2048 we warn the user that the text is too long, otherwise we send the summary
                             if(tokens > 2048){
-                                await context.sendActivity("Ocupa aquests tokens: " + tokens);
-                                await context.sendActivity("El text es massa llarg, no podem fer-ne un resum.");
+                                //await context.sendActivity("Ocupa aquests tokens: " + tokens);
+                                await context.sendActivity("The text is too long, we can't summarize it.");
                             } else {
                                 finalTranscription = await petititonOpenAiApi(text2);
-                                await context.sendActivity("Ocupa aquests tokens: " + tokens);
-                                await context.sendActivity("El resum de la reunió és: " + finalTranscription);
+                                //await context.sendActivity("Ocupa aquests tokens: " + tokens);
+                                await context.sendActivity("The summary of the meeting is: \n" + finalTranscription);
                             }
                         }
                     }
@@ -124,14 +163,11 @@ class MeetingBot extends ActivityHandler {
         this.onMembersAdded(async (context, next) => {
             const membersAdded = context.activity.membersAdded;
 
-            for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
-                if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    // The bot explain what it does
-                    const holaPersona = `Benvingut/da ${ membersAdded[cnt].id}`;
-                    await context.sendActivity(holaPersona);
-                    await context.sendActivity("Si m'envies un fitxer amb les transcripcions d'una reunió t'envio el resum.");  
-                }
-            }
+            // The bot explain what it does
+            await context.sendActivity("Welcome!"); 
+            await context.sendActivity("If you send me a file with the transcripts of a meeting I will send you the summary.");
+            await context.sendActivity("Remember that I only accept .txt and .vtt files.");
+
             await next();
         });
 

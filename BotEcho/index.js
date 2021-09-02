@@ -3,19 +3,19 @@
 
 const path = require('path');
 const dotenv = require('dotenv');
-const jwt_decode = require('jwt-decode');
 const restify = require('restify');
 
 // Import required bot configuration.
 const ENV_FILE = path.join(__dirname, '.env');
 dotenv.config({ path: ENV_FILE });
 
+
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const { MessageFactory,  BotFrameworkAdapter } = require('botbuilder');
+const { BotFrameworkAdapter } = require('botbuilder');
 
 
-// This bot's main dialog.
+// Aquest es el bot 
 const { MeetingBot } = require('./bots/bot');
 
 // Create HTTP server
@@ -34,6 +34,7 @@ const adapter = new BotFrameworkAdapter({
     channelService: process.env.ChannelService,
     openIdMetadata: process.env.BotOpenIdMetadata
 });
+
 
 // Catch-all for errors.
 const onTurnErrorHandler = async (context, error) => {
@@ -68,3 +69,76 @@ server.post('/api/messages', (req, res) => {
         await myBot.run(context);
     });
 });
+
+
+
+
+/*********************************************************************/
+/*
+const {
+    Client
+} = require("@microsoft/microsoft-graph-client");
+const {
+    TokenCredentialAuthenticationProvider
+} = require("@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials");
+const {
+    ClientSecretCredential
+} = require("@azure/identity");
+
+var tenantId = process.env.TENANT_ID;
+var clientId = process.env.CLIENT_ID;
+var clientSecret = process.env.CLIENT_SECRET;
+
+const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+console.log(credential);
+
+var authProvider = new TokenCredentialAuthenticationProvider(credential, {
+    scopes: [process.env.GRAPH_ENDPOINT + '.default']
+});
+
+const client = Client.initWithMiddleware({
+    authProvider
+    // Use the authProvider object to create the class.
+} = require('isomorphic-fetch'));
+*/
+
+/*
+require('dotenv').config();
+
+const yargs = require('yargs');
+
+const fetch = require('./bin/fetch');
+const auth = require('./bin/auth');
+
+const options = yargs
+    .usage('Usage: --op <operation_name>')
+    .option('op', { alias: 'operation', describe: 'operation name', type: 'string', demandOption: true })
+    .argv;
+
+async function main() {
+    console.log(`You have selected: ${options.op}`);
+
+    switch (yargs.argv['op']) {
+        case 'getUsers':
+
+            try {
+                // here we get an access token
+                const authResponse = await auth.getToken(auth.tokenRequest);
+
+                // call the web API with the access token
+                const users = await fetch.callApi(auth.apiConfig.uri, authResponse.accessToken);
+
+                // display result
+                console.log(users);
+            } catch (error) {
+                console.log(error);
+            }
+
+            break;
+        default:
+            console.log('Select a Graph operation first');
+            break;
+    }
+};
+
+main();*/
