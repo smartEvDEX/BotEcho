@@ -1,0 +1,33 @@
+https://developer.microsoft.com/en-us/microsoft-teams/blogs/working-with-files-in-your-microsoft-teams-bot/
+
+//Importants
+// Permisos de la API del BOT
+https://aad.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/CallAnAPI/appId/bacf0ad6-1526-4343-87a1-416f913f946e/isMSAApp/
+// Exemple
+https://github.com/microsoft/BotBuilder-Samples/tree/main/samples/javascript_nodejs/46.teams-auth
+
+
+
+// Onine Meeting
+// https://docs.microsoft.com/en-us/graph/api/resources/onlinemeeting?view=graph-rest-1.0
+// Teams Info
+// https://docs.microsoft.com/en-us/javascript/api/botbuilder/teamsinfo?view=botbuilder-ts-latest#getMeetingInfo_TurnContext__string_
+// EXAMPLES
+// https://github.com/microsoft/botbuilder-samples
+
+// Permisos de la API del BOT
+// https://aad.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/CallAnAPI/appId/bacf0ad6-1526-4343-87a1-416f913f946e/isMSAApp/
+// Com cridar la API GRAPH REST
+// https://docs.microsoft.com/es-es/graph/api/team-list-members?view=graph-rest-1.0&tabs=javascript
+
+
+            // Pilla tots els membres de la conversa
+            /*
+            const teamDetails = await TeamsInfo.getMembers(context);
+            if (teamDetails) {
+                for (let cnt = 0; cnt < teamDetails.length; ++cnt) {
+                    await context.sendActivity(`Teams Details Meeting Participants: ${ teamDetails[cnt].name }`);
+                }
+            } else {
+                await context.sendActivity('This message did not come from a channel in a team.');
+            }*/
