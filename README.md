@@ -32,7 +32,7 @@ https://docs.microsoft.com/es-es/azure/bot-service/bot-service-quickstart-regist
 ## How to use the bot locally? 
 
 To test the bot locally you have to install the Bot Framework Emulator application.  
-Start the Bot Framework Emulator application. 
-Click on Create a new bot configuration. 
-Put the name you want to the bot, endpoint URL: https://localahost:3978/api/messages, and fill in the corresponding Microsoft App Id and password. Click Save and connect. 
-Open the bot project in Visual Studio Code, and run the project by clicking Run > Star Debugging. Run the project with node.js, in case you don't have it, install it from this link: https://nodejs.org/es/download/  
+- Start the Bot Framework Emulator application. 
+- Click on Create a new bot configuration. 
+- Put the name you want to the bot, endpoint URL: https://localahost:3978/api/messages, and fill in the corresponding Microsoft App Id and password. Click Save and connect. 
+- Open the bot project in Visual Studio Code, and run the project by clicking Run > Star Debugging. Run the project with node.js, in case you don't have it, install it from this link: https://nodejs.org/es/download/  
