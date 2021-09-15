@@ -17,7 +17,7 @@ To get the transcripts of a meeting you must activate them when it starts. To ac
 
 ## How to register the bot? 
 
-- Go to the Azure portal.  
+- Go to the [Azure](https://portal.azure.com/signin/index/@smartiju16outlook.onmicrosoft.com?loginHint=smartiju16%40outlook.com&nonceErrorSeen=true) portal.  
 - In the right pane, select Create a resource. 
 - In the search box, type bot and press Enter. 
 - Select the Azure Bot card. 
@@ -31,7 +31,7 @@ https://docs.microsoft.com/es-es/azure/bot-service/bot-service-quickstart-regist
 
 ## How to use the bot locally? 
 
-To test the bot locally you have to install the Bot Framework Emulator application.  
+To test the bot locally you have to install the [Bot Framework Emulator](https://github.com/Microsoft/BotFramework-Emulator/releases/tag/v4.14.0) application.  
 - Start the Bot Framework Emulator application. 
 - Click on Create a new bot configuration. 
 - Put the name you want to the bot, endpoint URL: https://localahost:3978/api/messages, and fill in the corresponding Microsoft App Id and password. Click Save and connect. 
