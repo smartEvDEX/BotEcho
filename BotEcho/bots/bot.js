@@ -23,7 +23,7 @@ const openai_tokens = new OpenAITokens(OPENAI_API_KEY);
 
 // Variables to prepare the transcripts.
 const petition = "Convert my transcription into a first-hand account summary of the meeting: \n"
-const resum = "\n Summary:"
+const resum = "\n \n Summary:"
 const regex = /\d\d:\d\d:\d\d.\d\d\d/;
 const regex2 = /^([a-zA-Z]{2,}\s)([a-zA-Z]{2,}\s)([a-zA-Z]{2,})/;
 var text = null;
@@ -32,7 +32,7 @@ var transcription = null;
 var finalTranscription = null;
 var myArr;
 
-var maxtokens = 300;
+var maxtokens = 200;
 
 class MeetingBot extends ActivityHandler {
     constructor() {
@@ -41,15 +41,14 @@ class MeetingBot extends ActivityHandler {
         // When the bot recive a message
         this.onMessage(async (context, next) => {
             const attachments = context.activity.attachments;
-            TurnContext.removeRecipientMention(context.activity);
-
+  
             var text;
             if(context.activity.text != null){
                 text = context.activity.text.trim().toLocaleLowerCase();
             } else {
                 text = ""; 
             }
-            
+
             if (attachments == undefined) {
                 // If there isn't any attached files the bot inform what do it want
                 if (text.includes('hello')) {
@@ -73,24 +72,12 @@ class MeetingBot extends ActivityHandler {
                     const file = attachments[i];
                     // In case the ot has mention in a group conversation
                     if(file.contentType == "text/html"){
-                        if (text.includes('hello')) {
-                            await context.sendActivity("Hi!"); 
-                            await context.sendActivity("If you send me a file with the transcripts of a meeting I will send you the summary.");
-                            await context.sendActivity("Remember that I only accept .txt and .vtt files.");
-                        } else if (text.includes('thank') || text.includes('thanks')) {
-                            await context.sendActivity("You're welcome.");
-                            await context.sendActivity("If you need any other transcriptions send me the file.");
-                        } else if (text.includes('bye')) {
-                            await context.sendActivity("If you need any other transcriptions send me the file.");
-                            await context.sendActivity("Bye!");
-                        } else {
-                            await context.sendActivity("Welcome!"); 
-                            await context.sendActivity("If you send me a private message with the transcriptions file of a meeting I will send you the summary.");
-                            await context.sendActivity("Remember that I only accept .txt and .vtt files."); 
-                        }
+                        await context.sendActivity("Welcome!"); 
+                        await context.sendActivity("If you send me a private message with the transcriptions file of a meeting I will send you the summary.");
+                        await context.sendActivity("Remember that I only accept .txt and .vtt files."); 
                     } else {
                         // If has a file in a une vs one conversation
-                        transcription = null;
+
                         finalTranscription = null;
                         text = null;
                         text2 = null;
@@ -210,6 +197,7 @@ class MeetingBot extends ActivityHandler {
             return res;
         });
 
+    
       //  'https://teams.microsoft.com/l/meetup-join/'+ id_meeting +'/0?context=' + %7b%22Tid%22%3a%2272f988bf-86f1-41af-91ab-2d7cd011db47%22%2c%22Oid%22%3a%224b444206-207c-42f8-92a6-e332b41c88a2%22%7d
 
         // Read the URL text and return it
@@ -250,7 +238,7 @@ class MeetingBot extends ActivityHandler {
                     }
                     textAux2 = textAux2 + myArr2[j];
                 }
-                textAux = textAux + textAux2;
+                textAux = textAux + "\n" + textAux2;
             }
             
             return petition + textAux + resum;
@@ -267,7 +255,7 @@ class MeetingBot extends ActivityHandler {
                 myArr[i] = myArr[i].replace("</v>", "");
                 myArr[i] = myArr[i].replace("<v", "");
                 myArr[i] = myArr[i].replace(">", ": ");
-                textAux = textAux + myArr[i];
+                textAux = textAux + "\n" + myArr[i];
             }
 
 
@@ -291,8 +279,8 @@ class MeetingBot extends ActivityHandler {
         // Function that makes the request to the OpenAI API and returns the response 
         async function petititonOpenAiApi(transcription){
 
-            finalTranscription = transcription;
-            /*
+            //finalTranscription = transcription;
+            
             const gptResponse = await openai.complete({
               engine: 'davinci-instruct-beta',
               prompt: transcription,
@@ -303,7 +291,7 @@ class MeetingBot extends ActivityHandler {
               frequencyPenalty: 0.0
             });
 
-            finalTranscription = gptResponse.data.choices[0].text;*/
+            finalTranscription = gptResponse.data.choices[0].text;
             return finalTranscription;
             
           };
